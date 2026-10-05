@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react'
 import PropTypes from 'prop-types'
-import { forwardRef, useEffect, useRef } from 'react';
+import { forwardRef, useEffect, useEffectEvent, useRef } from 'react';
 import styled, { css, useTheme } from 'styled-components'
 import draggable from '../draggable'
 
@@ -36,6 +36,20 @@ const StyledGroup = styled.g`
           `}
   }
 `
+
+function useChange(value, callback) {
+  // run callback as an effect event only when value changes
+  // do not run callback on initial render
+  const onChange = useEffectEvent(callback)
+  const valueRef = useRef(value)
+
+  useEffect(() => {
+    if (value !== valueRef.current) {
+      valueRef.current = value
+      onChange(value)
+    }
+  }, [value])
+}
 
 export function focusMark(markNode) {
   const hasFocus = markNode === document.activeElement
@@ -83,36 +97,37 @@ const Mark = forwardRef(function Mark(
     }
   }
 
-  useEffect(function onSelectMark() {
-    if (isActive && mark.finished) {
-      focusMark(markRoot.current)
+  useChange(mark.finished, finished => {
+    // mark.finished should only change for active marks
+    // mark.finished should only change from false -> true
+    if (!(isActive && finished)) {
+      console.error('Failure of mark invariant')
+      return
     }
-  }, [isActive, mark.finished])
 
-  useEffect(function onFinishMarkWithSubTasks() {
-    /*
-    This runs for a new mark when it is:
-      - finished.
-      - valid.
-      - has subtasks.
-    When all three are true, the subtask popup opens automatically.
-    */
+    // Set focus on the mark even if the mark uses subtasks.
+    // This ensures that grommet's Layer will try to set focus on the mark
+    // when the popup task modal closes.
+    // Note that this may fail if there are multiple active marks
+    // e.g. in the separate frames viewer.
+
+    focusMark(markRoot.current)
+
     if (mark.usesSubTasks) {
       openSubTaskPopup()
     }
-  }, [mark.usesSubTasks])
+  })
 
-  useEffect(function onCloseSubTasks() {
-    /* 
-    Return keyboard focus to the active mark
-    when the subtask popup is closed.
-    NB. this may fail when there are multiple active marks
-    eg. in the separate frames viewer.
-    */
-    if (isActive && mark.usesSubTasks && !mark.subTaskVisibility) {
+  // This effect is not needed to set focus when the subtask popup closes because
+  // grommet's Layer component does this by default.
+  // However, to keep scroll management consistent, we call focusMark here.
+  // grommet calls focus inside a timeout, so this will override it by running first.
+
+  useChange(mark.subTaskVisibility, subTaskVisibility => {
+    if (!subTaskVisibility) {
       focusMark(markRoot.current)
     }
-  }, [mark.usesSubTasks, isActive, mark.subTaskVisibility])
+  })
 
   function onKeyDown(event) {
     switch (event.key) {

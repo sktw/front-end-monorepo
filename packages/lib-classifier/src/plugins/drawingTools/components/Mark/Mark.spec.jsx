@@ -407,8 +407,8 @@ describe('Drawing tools > Mark', function () {
       before(function () {
         newMark = pointTool.createMark()
         newMark.setSubTaskVisibility(false)
-        newMark.finish()
         render(markWrapper(newMark))
+        newMark.finish()
       })
 
       after(function () {

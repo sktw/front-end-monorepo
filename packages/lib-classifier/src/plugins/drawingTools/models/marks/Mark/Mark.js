@@ -96,7 +96,7 @@ const BaseMark = types
     },
 
     get usesSubTasks() {
-      return self.finished && self.isValid && self.tasks.length > 0
+      return self.isValid && self.tasks.length > 0
     },
 
     get videoTime() {
