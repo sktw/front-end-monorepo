@@ -96,7 +96,7 @@ const BaseMark = types
     },
 
     get usesSubTasks() {
-      return self.isValid && self.tasks.length > 0
+      return self.tasks.length > 0
     },
 
     get videoTime() {
@@ -126,7 +126,7 @@ const BaseMark = types
     },
 
     setSubTaskVisibility(visibility, markBounds) {
-      if (self.tasks.length > 0) {
+      if (self.usesSubTasks) {
         self.subTaskVisibility = visibility
         self.subTaskMarkBounds = markBounds
       }

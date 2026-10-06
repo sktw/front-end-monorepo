@@ -124,14 +124,20 @@ describe('Models > Drawing Task > Mark', function () {
   })
 
   describe('when there are no tool subtasks', function () {
+    const pointTool = Tool.create({
+      color: '#ff0000',
+      label: 'Point',
+      max: '10',
+      min: 1,
+      type: 'default'
+    })
+
+    it('should not use subtasks', function () {
+      const mark = pointTool.createMark({ id: 'mark1' })
+      expect(mark.usesSubTasks).to.equal(false)
+    })
+
     it('should not show the UI', function () {
-      const pointTool = Tool.create({
-        color: '#ff0000',
-        label: 'Point',
-        max: '10',
-        min: 1,
-        type: 'default'
-      })
       const mark = pointTool.createMark({ id: 'mark1' })
       expect(mark.subTaskMarkBounds).to.equal(undefined)
       expect(mark.subTaskVisibility).to.equal(false)
@@ -149,6 +155,10 @@ describe('Models > Drawing Task > Mark', function () {
 
       before(function () {
         ({ drawingTool, mark } = mockMark())
+      })
+
+      it('should use subtasks', function () {
+        expect(mark.usesSubTasks).to.equal(true)
       })
 
       it('should be complete', function () {
