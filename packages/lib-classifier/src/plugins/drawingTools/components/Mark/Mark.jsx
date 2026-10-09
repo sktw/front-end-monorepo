@@ -153,6 +153,16 @@ const Mark = forwardRef(function Mark(
   }
 
   function onPointerUp() {
+    // When drawing with the polygon tool (mark.finished = false) this handler will run if the user
+    // clicks the undo button. This leads to the following bugs:
+    // 1. The popup will open.
+    // 2. The mark gains focus. If the user subsequently presses
+    // enter, the popup opens and the mark is left in an invalid state.
+
+    if (!mark.finished) {
+      return
+    }
+
     // focus the mark, if it isn't already focused.
     focusMark(markRoot.current)
     if (mark.usesSubTasks) {
